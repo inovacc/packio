@@ -32,25 +32,14 @@ package main
 import (
 	"fmt"
 	"github.com/inovacc/wrapper"
+	"github.com/brianvoe/gofakeit/v6"
 )
 
-type User struct {
-	Name        string   `json:"name"`
-	Description string   `json:"description"`
-	Categories  []string `json:"categories"`
-	Price       float64  `json:"price"`
-}
-
 func main() {
-	user := User{
-		Name:        "Test Product",
-		Description: "A test product description",
-		Categories:  []string{"test", "example"},
-		Price:       29.99,
-	}
+	person := gofakeit.Person()
 
-	// Wrap the user
-	wrapped := wrapper.NewWrapper(user)
+	// Wrap the person
+	wrapped := wrapper.NewWrapper(person)
 
 	// Marshal to JSON
 	jsonData, err := wrapped.MarshalJSON()
@@ -60,14 +49,13 @@ func main() {
 	fmt.Printf("JSON: %s\n", string(jsonData))
 
 	// Unmarshal from JSON
-	newWrapped := wrapper.NewWrapper(User{})
-	err = newWrapped.UnmarshalJSON(jsonData)
-	if err != nil {
+	newWrapped := wrapper.NewWrapper(gofakeit.PersonInfo{})
+	if err = newWrapped.UnmarshalJSON(jsonData); err != nil {
 		panic(err)
 	}
 
-	result := newWrapped.Get() // is type User
-	fmt.Printf("Unmarshaled: %+v\n", result.Name)
+	result := newWrapped.Get() // is type PersonInfo
+	fmt.Printf("Unmarshaled: %+v\n", result)
 }
 ```
 
