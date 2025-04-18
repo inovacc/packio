@@ -1,10 +1,12 @@
-# JSON Wrapper Package
+# JSON Wrapper Package [![Test](https://github.com/dyammarcano/wrapper/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/dyammarcano/wrapper/actions/workflows/test.yml)
 
-A generic Go package that provides a simple way to add JSON marshaling and unmarshaling capabilities to any struct type. This wrapper is particularly useful when you need to add JSON functionality to existing structs without modifying them directly.
+A generic Go package that provides a simple way to add JSON marshaling and unmarshaling capabilities to any struct type.
+This wrapper is particularly useful when you need to add JSON functionality to existing structs without modifying them
+directly.
 
 ## Features
 
-- ✅ Generic implementation using Go 1.18+ type parameters
+- ✅ Generic implementation using Go 1.21+ type parameters
 - ✅ Simple and intuitive API
 - ✅ Thread-safe for concurrent reading
 - ✅ Built-in `Get` and `Set` methods
@@ -28,44 +30,44 @@ go get github.com/inovacc/wrapper
 package main
 
 import (
-    "fmt"
-    "github.com/inovacc/wrapper"
+	"fmt"
+	"github.com/inovacc/wrapper"
 )
 
 type User struct {
-    Name        string   `json:"name"`
-    Description string   `json:"description"`
-    Categories  []string `json:"categories"`
-    Price       float64  `json:"price"`
+	Name        string   `json:"name"`
+	Description string   `json:"description"`
+	Categories  []string `json:"categories"`
+	Price       float64  `json:"price"`
 }
 
 func main() {
-    user := User{
-        Name:        "Test Product",
-        Description: "A test product description",
-        Categories:  []string{"test", "example"},
-        Price:       29.99,
-    }
+	user := User{
+		Name:        "Test Product",
+		Description: "A test product description",
+		Categories:  []string{"test", "example"},
+		Price:       29.99,
+	}
 
-    // Wrap the user
-    wrapped := wrapper.NewWrapper(user)
+	// Wrap the user
+	wrapped := wrapper.NewWrapper(user)
 
-    // Marshal to JSON
-    jsonData, err := wrapped.MarshalJSON()
-    if err != nil {
-        panic(err)
-    }
-    fmt.Printf("JSON: %s\n", string(jsonData))
+	// Marshal to JSON
+	jsonData, err := wrapped.MarshalJSON()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Printf("JSON: %s\n", string(jsonData))
 
-    // Unmarshal from JSON
-    newWrapped := wrapper.NewWrapper(User{})
-    err = newWrapped.UnmarshalJSON(jsonData)
-    if err != nil {
-        panic(err)
-    }
+	// Unmarshal from JSON
+	newWrapped := wrapper.NewWrapper(User{})
+	err = newWrapped.UnmarshalJSON(jsonData)
+	if err != nil {
+		panic(err)
+	}
 
-    result := newWrapped.Get()
-    fmt.Printf("Unmarshaled: %+v\n", result)
+	result := newWrapped.Get()
+	fmt.Printf("Unmarshaled: %+v\n", result)
 }
 ```
 
@@ -77,13 +79,13 @@ func main() {
 
 ```go
 type CustomType struct {
-    Field1 string
-    Field2 int
+Field1 string
+Field2 int
 }
 
 wrapped := wrapper.NewWrapper(CustomType{
-    Field1: "value",
-    Field2: 42,
+Field1: "value",
+Field2: 42,
 })
 ```
 
@@ -101,7 +103,7 @@ wrapped.Set(newUser)
 wrapped := wrapper.NewWrapper(User{})
 err := wrapped.UnmarshalJSON([]byte(`invalid json`))
 if err != nil {
-    fmt.Printf("Error unmarshaling JSON: %v\n", err)
+fmt.Printf("Error unmarshaling JSON: %v\n", err)
 }
 ```
 
@@ -113,8 +115,8 @@ if err != nil {
 
 ```go
 type Wrapper interface {
-    MarshalJSON() ([]byte, error)
-    UnmarshalJSON([]byte) error
+MarshalJSON() ([]byte, error)
+UnmarshalJSON([]byte) error
 }
 ```
 
@@ -122,7 +124,7 @@ type Wrapper interface {
 
 ```go
 type WithJSON[T any] struct {
-    Data T
+Data T
 }
 ```
 
