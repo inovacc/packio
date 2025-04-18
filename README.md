@@ -66,8 +66,8 @@ func main() {
 		panic(err)
 	}
 
-	result := newWrapped.Get()
-	fmt.Printf("Unmarshaled: %+v\n", result)
+	result := newWrapped.Get() // is type User
+	fmt.Printf("Unmarshaled: %+v\n", result.Name)
 }
 ```
 
@@ -79,13 +79,13 @@ func main() {
 
 ```go
 type CustomType struct {
-Field1 string
-Field2 int
+	Field1 string
+	Field2 int
 }
 
 wrapped := wrapper.NewWrapper(CustomType{
-Field1: "value",
-Field2: 42,
+	Field1: "value",
+	Field2: 42,
 })
 ```
 
@@ -101,9 +101,8 @@ wrapped.Set(newUser)
 
 ```go
 wrapped := wrapper.NewWrapper(User{})
-err := wrapped.UnmarshalJSON([]byte(`invalid json`))
-if err != nil {
-fmt.Printf("Error unmarshaling JSON: %v\n", err)
+if err := wrapped.UnmarshalJSON([]byte(`invalid json`)); err != nil {
+	fmt.Printf("Error unmarshaling JSON: %v\n", err)
 }
 ```
 
@@ -115,8 +114,8 @@ fmt.Printf("Error unmarshaling JSON: %v\n", err)
 
 ```go
 type Wrapper interface {
-MarshalJSON() ([]byte, error)
-UnmarshalJSON([]byte) error
+	MarshalJSON() ([]byte, error)
+	UnmarshalJSON([]byte) error
 }
 ```
 
@@ -124,7 +123,7 @@ UnmarshalJSON([]byte) error
 
 ```go
 type WithJSON[T any] struct {
-Data T
+	Data T
 }
 ```
 
