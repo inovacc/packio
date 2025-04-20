@@ -42,4 +42,8 @@ func (w *WithJSON[T]) Set(data T) {
 	w.Data = data
 }
 
-type PayloadFactory[P Wrapper] func() P
+// Clone returns a new empty wrapper of the same type
+func (w *WithJSON[T]) Clone() *WithJSON[T] {
+	var zero T
+	return NewWrapper(zero)
+}
