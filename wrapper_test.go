@@ -141,3 +141,25 @@ func TestWrapperEdgeCases(t *testing.T) {
 		}
 	})
 }
+
+func TestClone(t *testing.T) {
+	wUser := NewWrapper(User{
+		Name:        "Microwave Vertex Marble",
+		Description: "Full him bale me within. As far to canoe wad its it.",
+		Categories:  []string{"musical instruments", "bicycles and accessories", "books"},
+		Price:       46.06,
+		Features:    []string{"user-friendly", "compact"},
+		Color:       "navy",
+		Material:    "granite",
+	})
+
+	clone := wUser.Clone()
+
+	if wUser == clone {
+		t.Error("Cloned wrapper is the same as the original")
+	}
+
+	if clone.Get().Name == wUser.Get().Name {
+		t.Error("Cloned wrapper need to be empty")
+	}
+}
