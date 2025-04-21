@@ -5,9 +5,12 @@ import (
 )
 
 // Wrapper is an interface that provides JSON marshaling capabilities
-type Wrapper interface {
+type Wrapper[T any] interface {
 	MarshalJSON() ([]byte, error)
 	UnmarshalJSON([]byte) error
+	Clone(bool) Wrapper[T]
+	Get() T
+	Set(data T)
 }
 
 // WithJSON adds JSON marshaling capabilities to any struct
@@ -42,8 +45,31 @@ func (w *WithJSON[T]) Set(data T) {
 	w.Data = data
 }
 
-// Clone returns a new empty wrapper of the same type
-func (w *WithJSON[T]) Clone() *WithJSON[T] {
-	var zero T
-	return NewWrapper(zero)
+// Clone returns a new wrapper with a deep copy of the data
+func (w *WithJSON[T]) Clone(empty bool) Wrapper[T] {
+	if empty {
+		var zero T
+		return NewWrapper(zero)
+	}
+
+	// Marshal the original data
+	data, err := json.Marshal(w.Data)
+	if err != nil {
+		// Since we can't return an error in the interface,
+		// return an empty wrapper as fallback
+		var zero T
+		return NewWrapper(zero)
+	}
+
+	// Create a new instance
+	var newData T
+
+	// Unmarshal into the new instance
+	if err := json.Unmarshal(data, &newData); err != nil {
+		// Return empty wrapper as fallback
+		var zero T
+		return NewWrapper(zero)
+	}
+
+	return NewWrapper(newData)
 }
