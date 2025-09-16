@@ -19,10 +19,6 @@ func (w *WithTOML[T]) Serialize() ([]byte, error) { return toml.Marshal(w.Data) 
 // Deserialize implements Serializer using TOML format.
 func (w *WithTOML[T]) Deserialize(b []byte) error { return toml.Unmarshal(b, &w.Data) }
 
-// MarshalTOMLBytes Backward-compat helpers for code that may still call them.
-func (w *WithTOML[T]) MarshalTOMLBytes() ([]byte, error) { return toml.Marshal(w.Data) }
-func (w *WithTOML[T]) UnmarshalTOMLBytes(b []byte) error { return toml.Unmarshal(b, &w.Data) }
-
 // Get returns the underlying data
 func (w *WithTOML[T]) Get() T { return w.Data }
 

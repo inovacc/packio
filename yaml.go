@@ -19,10 +19,6 @@ func (w *WithYAML[T]) Serialize() ([]byte, error) { return yaml.Marshal(w.Data) 
 // Deserialize implements Serializer using YAML format.
 func (w *WithYAML[T]) Deserialize(b []byte) error { return yaml.Unmarshal(b, &w.Data) }
 
-// MarshalYAMLBytes Backward-compat helpers for code that may still call them.
-func (w *WithYAML[T]) MarshalYAMLBytes() ([]byte, error) { return yaml.Marshal(w.Data) }
-func (w *WithYAML[T]) UnmarshalYAMLBytes(b []byte) error { return yaml.Unmarshal(b, &w.Data) }
-
 // Get returns the underlying data
 func (w *WithYAML[T]) Get() T { return w.Data }
 

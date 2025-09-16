@@ -13,12 +13,6 @@ func (w *WithJSON[T]) Serialize() ([]byte, error) { return json.Marshal(w.Data) 
 // Deserialize implements Serializer using JSON format.
 func (w *WithJSON[T]) Deserialize(data []byte) error { return json.Unmarshal(data, &w.Data) }
 
-// MarshalJSON implements the json.Marshaler interface (backward compatibility)
-func (w *WithJSON[T]) MarshalJSON() ([]byte, error) { return json.Marshal(w.Data) }
-
-// UnmarshalJSON implements the json.Unmarshaler interface (backward compatibility)
-func (w *WithJSON[T]) UnmarshalJSON(data []byte) error { return json.Unmarshal(data, &w.Data) }
-
 // Get returns the underlying data
 func (w *WithJSON[T]) Get() T { return w.Data }
 

@@ -141,7 +141,7 @@ func TestWrapper(t *testing.T) {
 				return
 			}
 
-			// Compare original and unmarshalled results
+			// Compare original and unmarshalled
 			result := newWrapper.Get()
 			if !reflect.DeepEqual(result, tt.input) {
 				t.Errorf("Data mismatch after marshal/unmarshal\ngot: %+v\nwant: %+v", result, tt.input)
@@ -153,6 +153,7 @@ func TestWrapper(t *testing.T) {
 func TestWrapperEdgeCases(t *testing.T) {
 	t.Run("Deserialize invalid JSON", func(t *testing.T) {
 		w := NewWrapper(User{})
+
 		err := w.Deserialize([]byte(`{"invalid json`))
 		if err == nil {
 			t.Error("Expected error for invalid JSON, got nil")
@@ -161,6 +162,7 @@ func TestWrapperEdgeCases(t *testing.T) {
 
 	t.Run("Deserialize empty JSON", func(t *testing.T) {
 		w := NewWrapper(User{})
+
 		err := w.Deserialize([]byte(`{}`))
 		if err != nil {
 			t.Errorf("Unexpected error for empty JSON: %v", err)
@@ -169,6 +171,7 @@ func TestWrapperEdgeCases(t *testing.T) {
 
 	t.Run("Deserialize with invalid types", func(t *testing.T) {
 		w := NewWrapper(User{})
+
 		err := w.Deserialize([]byte(`{"price": "not a number"}`))
 		if err == nil {
 			t.Error("Expected error for invalid type conversion, got nil")
@@ -177,6 +180,7 @@ func TestWrapperEdgeCases(t *testing.T) {
 
 	t.Run("Deserialize with null values", func(t *testing.T) {
 		w := NewWrapper(User{})
+
 		err := w.Deserialize([]byte(`{"name": null, "price": null}`))
 		if err != nil {
 			t.Errorf("Unexpected error for null values: %v", err)
@@ -288,5 +292,83 @@ func TestEmptyWrapperWithSet(t *testing.T) {
 	if !reflect.DeepEqual(verifyWrapper.Get(), testUser) {
 		t.Errorf("Data mismatch after Set() and marshal/unmarshal\ngot: %+v\nwant: %+v",
 			verifyWrapper.Get(), testUser)
+	}
+}
+
+func TestYAMLWrapperRoundTrip(t *testing.T) {
+	u := User{
+		Name:        "Ada",
+		Description: "Pioneer",
+		Categories:  []string{"math", "computing"},
+		Price:       3.14,
+		Features:    []string{"analytical engine"},
+		Color:       "blue",
+		Material:    "paper",
+	}
+	w := NewYAMLWrapper(u)
+
+	b, err := w.Serialize()
+	if err != nil {
+		t.Fatalf("Serialize error: %v", err)
+	}
+
+	other := NewYAMLWrapper(User{})
+	if err := other.Deserialize(b); err != nil {
+		t.Fatalf("Deserialize error: %v", err)
+	}
+
+	if !reflect.DeepEqual(u, other.Get()) {
+		t.Errorf("YAML round-trip mismatch\nwant: %+v\n got: %+v", u, other.Get())
+	}
+}
+
+func TestYAMLCloneDeepCopy(t *testing.T) {
+	orig := NewYAMLWrapper(User{Categories: []string{"a", "b"}})
+	clone := orig.Clone(false)
+	origData := orig.Get()
+	origData.Categories[0] = "x"
+
+	cloned := clone.Get()
+	if cloned.Categories[0] == "x" {
+		t.Error("YAML clone did not deep copy slices")
+	}
+}
+
+func TestTOMLWrapperRoundTrip(t *testing.T) {
+	u := User{
+		Name:        "Grace",
+		Description: "COBOL",
+		Categories:  []string{"lang"},
+		Price:       1.23,
+		Features:    []string{"navy"},
+		Color:       "white",
+		Material:    "paper",
+	}
+	w := NewTOMLWrapper(u)
+
+	b, err := w.Serialize()
+	if err != nil {
+		t.Fatalf("Serialize error: %v", err)
+	}
+
+	other := NewTOMLWrapper(User{})
+	if err := other.Deserialize(b); err != nil {
+		t.Fatalf("Deserialize error: %v", err)
+	}
+
+	if !reflect.DeepEqual(u, other.Get()) {
+		t.Errorf("TOML round-trip mismatch\nwant: %+v\n got: %+v", u, other.Get())
+	}
+}
+
+func TestTOMLCloneDeepCopy(t *testing.T) {
+	orig := NewTOMLWrapper(User{Features: []string{"f1", "f2"}})
+	clone := orig.Clone(false)
+	origData := orig.Get()
+	origData.Features[0] = "y"
+
+	cloned := clone.Get()
+	if cloned.Features[0] == "y" {
+		t.Error("TOML clone did not deep copy slices")
 	}
 }

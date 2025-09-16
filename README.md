@@ -24,40 +24,48 @@ go get github.com/inovacc/wrapper
 
 ## Usage
 
+You can construct a wrapper by passing an optional format selector:
+
+```go
+w := wrapper.NewWrapper(MyObj{}, wrapper.JSON) // or wrapper.YAML / wrapper.TOML
+// If you omit the second argument, it defaults to JSON:
+defaultJSON := wrapper.NewWrapper(MyObj{})
+```
+
 ### JSON (built-in)
 
 ```go
 package main
 
 import (
-	"fmt"
-	"github.com/inovacc/wrapper"
+  "fmt"
+  "github.com/inovacc/wrapper"
 )
 
 type Person struct {
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
+  FirstName string `json:"first_name"`
+  LastName  string `json:"last_name"`
 }
 
 func main() {
-	p := Person{FirstName: "Ada", LastName: "Lovelace"}
+  p := Person{FirstName: "Ada", LastName: "Lovelace"}
 
-	// Wrap the value
-	wrapped := wrapper.NewWrapper(p)
+  // Wrap the value
+  wrapped := wrapper.NewWrapper(p)
 
-	// Marshal to JSON
- jsonData, err := wrapped.Serialize()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Printf("JSON: %s\n", string(jsonData))
+  // Marshal to JSON
+  jsonData, err := wrapped.Serialize()
+  if err != nil {
+    panic(err)
+  }
+  fmt.Printf("JSON: %s\n", string(jsonData))
 
-	// Unmarshal back
-	other := wrapper.NewWrapper(Person{})
- if err := other.Deserialize(jsonData); err != nil {
-		panic(err)
-	}
-	fmt.Printf("Unmarshaled: %+v\n", other.Get())
+  // Unmarshal back
+  other := wrapper.NewWrapper(Person{})
+  if err := other.Deserialize(jsonData); err != nil {
+    panic(err)
+  }
+  fmt.Printf("Unmarshaled: %+v\n", other.Get())
 }
 ```
 
@@ -91,13 +99,13 @@ _ = otherT.Deserialize(b)
 
 ```go
 type CustomType struct {
-	Field1 string
-	Field2 int
+Field1 string
+Field2 int
 }
 
 wrapped := wrapper.NewWrapper(CustomType{
-	Field1: "value",
-	Field2: 42,
+Field1: "value",
+Field2: 42,
 })
 ```
 
@@ -125,7 +133,7 @@ _ = wrapper.NewTOMLWrapper(src.Get()).Clone(true)
 ```go
 wrapped := wrapper.NewWrapper(Person{})
 if err := wrapped.Deserialize([]byte("invalid")); err != nil {
-	fmt.Printf("Error unmarshaling JSON: %v\n", err)
+fmt.Printf("Error unmarshaling JSON: %v\n", err)
 }
 ```
 
@@ -137,11 +145,11 @@ if err := wrapped.Deserialize([]byte("invalid")); err != nil {
 
 ```go
 type Serializer[T any] interface {
-	Serialize() ([]byte, error)
-	Deserialize([]byte) error
-	Clone(empty bool) Serializer[T]
-	Get() T
-	Set(data T)
+Serialize() ([]byte, error)
+Deserialize([]byte) error
+Clone(empty bool) Serializer[T]
+Get() T
+Set(data T)
 }
 ```
 
@@ -149,14 +157,14 @@ Program to this interface in your functions to enforce use of the JSON wrapper, 
 
 ```go
 func Save[T any](w wrapper.Serializer[T]) ([]byte, error) {
-	return w.Serialize()
+return w.Serialize()
 }
 ```
 
 ### Format-specific types
 
-WithYAML[T] and WithTOML[T] are concrete types that implement Serializer[T] using YAML and TOML respectively. Prefer depending on the Serializer[T] interface in your APIs; instantiate the concrete types when you need a specific format.
-
+WithYAML[T] and WithTOML[T] are concrete types that implement Serializer[T] using YAML and TOML respectively. Prefer depending on the Serializer[T] interface in your APIs; instantiate the concrete
+types when you need a specific format.
 
 These allow you to accept interfaces in your APIs, ensuring callers pass the appropriate wrapper and enabling features like Clone and format-specific marshal/unmarshal.
 
@@ -164,7 +172,7 @@ These allow you to accept interfaces in your APIs, ensuring callers pass the app
 
 ```go
 type WithJSON[T any] struct {
-	Data T
+Data T
 }
 ```
 
@@ -177,7 +185,8 @@ type WithJSON[T any] struct {
 
 ## Notes on Concurrency
 
-This package does not include synchronization primitives. If you share a wrapper instance across goroutines and perform concurrent writes, protect access with your own sync (e.g., `sync.Mutex`, `sync.RWMutex`).
+This package does not include synchronization primitives. If you share a wrapper instance across goroutines and perform concurrent writes, protect access with your own sync (e.g., `sync.Mutex`,
+`sync.RWMutex`).
 
 ---
 
