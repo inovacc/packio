@@ -120,10 +120,10 @@ func TestWrapper(t *testing.T) {
 			// Create wrapper
 			p := NewWrapper(tt.input)
 
-			// Test MarshalJSON
-			data, err := p.MarshalJSON()
+			// Test Serialize (JSON)
+			data, err := p.Serialize()
 			if (err != nil) != tt.wantErr {
-				t.Errorf("MarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("Serialize() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -134,10 +134,10 @@ func TestWrapper(t *testing.T) {
 				return
 			}
 
-			// Test UnmarshalJSON
+			// Test Deserialize
 			newWrapper := NewWrapper(User{})
-			if err := newWrapper.UnmarshalJSON(data); err != nil {
-				t.Errorf("UnmarshalJSON() error = %v", err)
+			if err := newWrapper.Deserialize(data); err != nil {
+				t.Errorf("Deserialize() error = %v", err)
 				return
 			}
 
@@ -151,33 +151,33 @@ func TestWrapper(t *testing.T) {
 }
 
 func TestWrapperEdgeCases(t *testing.T) {
-	t.Run("Unmarshal invalid JSON", func(t *testing.T) {
+	t.Run("Deserialize invalid JSON", func(t *testing.T) {
 		w := NewWrapper(User{})
-		err := w.UnmarshalJSON([]byte(`{"invalid json`))
+		err := w.Deserialize([]byte(`{"invalid json`))
 		if err == nil {
 			t.Error("Expected error for invalid JSON, got nil")
 		}
 	})
 
-	t.Run("Unmarshal empty JSON", func(t *testing.T) {
+	t.Run("Deserialize empty JSON", func(t *testing.T) {
 		w := NewWrapper(User{})
-		err := w.UnmarshalJSON([]byte(`{}`))
+		err := w.Deserialize([]byte(`{}`))
 		if err != nil {
 			t.Errorf("Unexpected error for empty JSON: %v", err)
 		}
 	})
 
-	t.Run("Unmarshal with invalid types", func(t *testing.T) {
+	t.Run("Deserialize with invalid types", func(t *testing.T) {
 		w := NewWrapper(User{})
-		err := w.UnmarshalJSON([]byte(`{"price": "not a number"}`))
+		err := w.Deserialize([]byte(`{"price": "not a number"}`))
 		if err == nil {
 			t.Error("Expected error for invalid type conversion, got nil")
 		}
 	})
 
-	t.Run("Unmarshal with null values", func(t *testing.T) {
+	t.Run("Deserialize with null values", func(t *testing.T) {
 		w := NewWrapper(User{})
-		err := w.UnmarshalJSON([]byte(`{"name": null, "price": null}`))
+		err := w.Deserialize([]byte(`{"name": null, "price": null}`))
 		if err != nil {
 			t.Errorf("Unexpected error for null values: %v", err)
 		}
@@ -266,10 +266,10 @@ func TestEmptyWrapperWithSet(t *testing.T) {
 		t.Errorf("Set() failed to update empty wrapper\ngot: %+v\nwant: %+v", result, testUser)
 	}
 
-	// Test JSON marshaling of the updated wrapper
-	data, err := emptyWrapper.MarshalJSON()
+	// Test serialization of the updated wrapper
+	data, err := emptyWrapper.Serialize()
 	if err != nil {
-		t.Errorf("MarshalJSON() error after Set(): %v", err)
+		t.Errorf("Serialize() error after Set(): %v", err)
 	}
 
 	// Verify JSON structure
@@ -278,10 +278,10 @@ func TestEmptyWrapperWithSet(t *testing.T) {
 		t.Errorf("Generated JSON is invalid after Set(): %v", err)
 	}
 
-	// Create another empty wrapper and unmarshal the data
+	// Create another empty wrapper and deserialize the data
 	verifyWrapper := NewWrapper(User{})
-	if err := verifyWrapper.UnmarshalJSON(data); err != nil {
-		t.Errorf("UnmarshalJSON() error after Set(): %v", err)
+	if err := verifyWrapper.Deserialize(data); err != nil {
+		t.Errorf("Deserialize() error after Set(): %v", err)
 	}
 
 	// Compare the results

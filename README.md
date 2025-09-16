@@ -1,16 +1,16 @@
-# JSON Wrapper Package [![Test](https://github.com/dyammarcano/wrapper/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/dyammarcano/wrapper/actions/workflows/test.yml)
+# Data Wrapper Package (JSON, YAML, TOML)
 
-A generic Go package that provides a simple way to add JSON marshaling and unmarshaling capabilities to any struct type.
-This wrapper is particularly useful when you need to add JSON functionality to existing structs without modifying them
-directly.
+A generic Go package that provides a simple way to add marshaling and unmarshaling capabilities to any struct type for multiple formats.
+This wrapper is particularly useful when you need to add serialization functionality to existing structs without modifying them directly.
 
 ## Features
 
 - ✅ Generic implementation using Go 1.21+ type parameters
 - ✅ Simple and intuitive API
-- ✅ Thread-safe for concurrent reading
-- ✅ Built-in `Get` and `Set` methods
-- ✅ Zero external dependencies
+- ✅ Built-in `Get`, `Set`, and `Clone` methods
+- ✅ JSON support (std lib)
+- ✅ YAML support (`gopkg.in/yaml.v3`)
+- ✅ TOML support (`github.com/pelletier/go-toml/v2`)
 
 ---
 
@@ -24,7 +24,7 @@ go get github.com/inovacc/wrapper
 
 ## Usage
 
-### Basic Usage
+### JSON (built-in)
 
 ```go
 package main
@@ -32,36 +32,60 @@ package main
 import (
 	"fmt"
 	"github.com/inovacc/wrapper"
-	"github.com/brianvoe/gofakeit/v6"
 )
 
-func main() {
-	person := gofakeit.Person()
+type Person struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+}
 
-	// Wrap the person
-	wrapped := wrapper.NewWrapper(person)
+func main() {
+	p := Person{FirstName: "Ada", LastName: "Lovelace"}
+
+	// Wrap the value
+	wrapped := wrapper.NewWrapper(p)
 
 	// Marshal to JSON
-	jsonData, err := wrapped.MarshalJSON()
+ jsonData, err := wrapped.Serialize()
 	if err != nil {
 		panic(err)
 	}
 	fmt.Printf("JSON: %s\n", string(jsonData))
 
-	// Unmarshal from JSON
-	newWrapped := wrapper.NewWrapper(gofakeit.PersonInfo{})
-	if err = newWrapped.UnmarshalJSON(jsonData); err != nil {
+	// Unmarshal back
+	other := wrapper.NewWrapper(Person{})
+ if err := other.Deserialize(jsonData); err != nil {
 		panic(err)
 	}
-
-	result := newWrapped.Get() // is type PersonInfo
-	fmt.Printf("Unmarshaled: %+v\n", result)
+	fmt.Printf("Unmarshaled: %+v\n", other.Get())
 }
+```
+
+### YAML
+
+```go
+p := Person{FirstName: "Ada", LastName: "Lovelace"}
+yw := wrapper.NewYAMLWrapper(p)
+b, _ := yw.Serialize()
+// ... later
+otherY := wrapper.NewYAMLWrapper(Person{})
+_ = otherY.Deserialize(b)
+```
+
+### TOML
+
+```go
+p := Person{FirstName: "Ada", LastName: "Lovelace"}
+tw := wrapper.NewTOMLWrapper(p)
+b, _ := tw.Serialize()
+// ... later
+otherT := wrapper.NewTOMLWrapper(Person{})
+_ = otherT.Deserialize(b)
 ```
 
 ---
 
-### Advanced Usage
+## Advanced Usage
 
 #### Custom Types
 
@@ -80,32 +104,61 @@ wrapped := wrapper.NewWrapper(CustomType{
 #### Updating Data
 
 ```go
-wrapped := wrapper.NewWrapper(User{})
-newUser := User{Name: "Updated Name"}
-wrapped.Set(newUser)
+wrapped := wrapper.NewWrapper(Person{})
+wrapped.Set(Person{FirstName: "Grace", LastName: "Hopper"})
+```
+
+#### Cloning
+
+```go
+src := wrapper.NewWrapper(Person{FirstName: "Linus", LastName: "Torvalds"})
+fullCopy := src.Clone(false) // deep copy of data
+emptyCopy := src.Clone(true) // zero-value data
+
+// YAML/TOML wrappers also support Clone
+_ = wrapper.NewYAMLWrapper(src.Get()).Clone(false)
+_ = wrapper.NewTOMLWrapper(src.Get()).Clone(true)
 ```
 
 #### Error Handling
 
 ```go
-wrapped := wrapper.NewWrapper(User{})
-if err := wrapped.UnmarshalJSON([]byte(`invalid json`)); err != nil {
+wrapped := wrapper.NewWrapper(Person{})
+if err := wrapped.Deserialize([]byte("invalid")); err != nil {
 	fmt.Printf("Error unmarshaling JSON: %v\n", err)
 }
 ```
 
 ---
 
-## Interface
+## API
 
-### `Wrapper` Interface
+### `Serializer[T any]` Interface (Unified)
 
 ```go
-type Wrapper interface {
-	MarshalJSON() ([]byte, error)
-	UnmarshalJSON([]byte) error
+type Serializer[T any] interface {
+	Serialize() ([]byte, error)
+	Deserialize([]byte) error
+	Clone(empty bool) Serializer[T]
+	Get() T
+	Set(data T)
 }
 ```
+
+Program to this interface in your functions to enforce use of the JSON wrapper, for example:
+
+```go
+func Save[T any](w wrapper.Serializer[T]) ([]byte, error) {
+	return w.Serialize()
+}
+```
+
+### Format-specific types
+
+WithYAML[T] and WithTOML[T] are concrete types that implement Serializer[T] using YAML and TOML respectively. Prefer depending on the Serializer[T] interface in your APIs; instantiate the concrete types when you need a specific format.
+
+
+These allow you to accept interfaces in your APIs, ensuring callers pass the appropriate wrapper and enabling features like Clone and format-specific marshal/unmarshal.
 
 ### `WithJSON[T]` Type
 
@@ -115,31 +168,16 @@ type WithJSON[T any] struct {
 }
 ```
 
----
+### Additional types
 
-## Methods
-
-- `NewWrapper[T any](data T) *WithJSON[T]`: Creates a new wrapper
-- `MarshalJSON() ([]byte, error)`: Converts data to JSON
-- `UnmarshalJSON(data []byte) error`: Parses JSON into data
-- `Get() T`: Retrieves the stored value
-- `Set(data T)`: Updates the value
+- `WithYAML[T]` with helpers: `NewYAMLWrapper`, `Serialize() ([]byte, error)`, `Deserialize([]byte) error`, `Get()`, `Set(T)`, `Clone(empty bool) *WithYAML[T]`.
+- `WithTOML[T]` with helpers: `NewTOMLWrapper`, `Serialize() ([]byte, error)`, `Deserialize([]byte) error`, `Get()`, `Set(T)`, `Clone(empty bool) *WithTOML[T]`.
 
 ---
 
-## Best Practices
+## Notes on Concurrency
 
-1. Always check for errors on (un)marshaling
-2. Use `json` tags for correct serialization
-3. Always use `NewWrapper` to initialize
-4. Explicitly define types for clarity
-
----
-
-## Thread Safety
-
-- Safe for concurrent **read** operations
-- Use sync primitives (e.g., `sync.Mutex`) for **concurrent writes**
+This package does not include synchronization primitives. If you share a wrapper instance across goroutines and perform concurrent writes, protect access with your own sync (e.g., `sync.Mutex`, `sync.RWMutex`).
 
 ---
 
@@ -151,4 +189,4 @@ PRs are welcome! Please open issues or submit a Pull Request if you have improve
 
 ## License
 
-Licensed under the [MIT License](./LICENSE)
+Licensed under the MIT License.
