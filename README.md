@@ -1,11 +1,11 @@
-# Data Wrapper Package (JSON, YAML, TOML)
+# packio — Generic Serialization Wrappers (JSON, YAML, TOML)
 
 A generic Go package that provides a simple way to add marshaling and unmarshaling capabilities to any struct type for multiple formats.
 This wrapper is particularly useful when you need to add serialization functionality to existing structs without modifying them directly.
 
 ## Features
 
-- ✅ Generic implementation using Go 1.21+ type parameters
+- ✅ Generic implementation using Go type parameters (Go 1.23+)
 - ✅ Simple and intuitive API
 - ✅ Built-in `Get`, `Set`, and `Clone` methods
 - ✅ JSON support (std lib)
@@ -17,7 +17,7 @@ This wrapper is particularly useful when you need to add serialization functiona
 ## Installation
 
 ```sh
-go get github.com/inovacc/wrapper
+go get github.com/inovacc/packio
 ```
 
 ---
@@ -27,9 +27,9 @@ go get github.com/inovacc/wrapper
 You can construct a wrapper by passing an optional format selector:
 
 ```go
-w := wrapper.NewWrapper(MyObj{}, wrapper.JSON) // or wrapper.YAML / wrapper.TOML
+w := packio.New(MyObj{}, packio.JSON) // or packio.YAML / packio.TOML
 // If you omit the second argument, it defaults to JSON:
-defaultJSON := wrapper.NewWrapper(MyObj{})
+defaultJSON := packio.New(MyObj{})
 ```
 
 ### JSON (built-in)
@@ -39,7 +39,7 @@ package main
 
 import (
   "fmt"
-  "github.com/inovacc/wrapper"
+  "github.com/inovacc/packio"
 )
 
 type Person struct {
@@ -51,7 +51,7 @@ func main() {
   p := Person{FirstName: "Ada", LastName: "Lovelace"}
 
   // Wrap the value
-  wrapped := wrapper.NewWrapper(p)
+  wrapped := packio.New(p)
 
   // Marshal to JSON
   jsonData, err := wrapped.Serialize()
@@ -61,7 +61,7 @@ func main() {
   fmt.Printf("JSON: %s\n", string(jsonData))
 
   // Unmarshal back
-  other := wrapper.NewWrapper(Person{})
+  other := packio.New(Person{})
   if err := other.Deserialize(jsonData); err != nil {
     panic(err)
   }
@@ -73,10 +73,10 @@ func main() {
 
 ```go
 p := Person{FirstName: "Ada", LastName: "Lovelace"}
-yw := wrapper.NewYAMLWrapper(p)
+yw := packio.New(p, packio.YAML)
 b, _ := yw.Serialize()
 // ... later
-otherY := wrapper.NewYAMLWrapper(Person{})
+otherY := packio.New(Person{}, packio.YAML)
 _ = otherY.Deserialize(b)
 ```
 
@@ -84,10 +84,10 @@ _ = otherY.Deserialize(b)
 
 ```go
 p := Person{FirstName: "Ada", LastName: "Lovelace"}
-tw := wrapper.NewTOMLWrapper(p)
+tw := packio.New(p, packio.TOML)
 b, _ := tw.Serialize()
 // ... later
-otherT := wrapper.NewTOMLWrapper(Person{})
+otherT := packio.New(Person{}, packio.TOML)
 _ = otherT.Deserialize(b)
 ```
 
@@ -99,41 +99,41 @@ _ = otherT.Deserialize(b)
 
 ```go
 type CustomType struct {
-Field1 string
-Field2 int
+  Field1 string
+  Field2 int
 }
 
-wrapped := wrapper.NewWrapper(CustomType{
-Field1: "value",
-Field2: 42,
+wrapped := packio.New(CustomType{
+  Field1: "value",
+  Field2: 42,
 })
 ```
 
 #### Updating Data
 
 ```go
-wrapped := wrapper.NewWrapper(Person{})
+wrapped := packio.New(Person{})
 wrapped.Set(Person{FirstName: "Grace", LastName: "Hopper"})
 ```
 
 #### Cloning
 
 ```go
-src := wrapper.NewWrapper(Person{FirstName: "Linus", LastName: "Torvalds"})
+src := packio.New(Person{FirstName: "Linus", LastName: "Torvalds"})
 fullCopy := src.Clone(false) // deep copy of data
 emptyCopy := src.Clone(true) // zero-value data
 
 // YAML/TOML wrappers also support Clone
-_ = wrapper.NewYAMLWrapper(src.Get()).Clone(false)
-_ = wrapper.NewTOMLWrapper(src.Get()).Clone(true)
+_ = packio.New(src.Get(), packio.YAML).Clone(false)
+_ = packio.New(src.Get(), packio.TOML).Clone(true)
 ```
 
 #### Error Handling
 
 ```go
-wrapped := wrapper.NewWrapper(Person{})
+wrapped := packio.New(Person{})
 if err := wrapped.Deserialize([]byte("invalid")); err != nil {
-fmt.Printf("Error unmarshaling JSON: %v\n", err)
+    fmt.Printf("Error deserializing: %v\n", err)
 }
 ```
 
@@ -145,19 +145,19 @@ fmt.Printf("Error unmarshaling JSON: %v\n", err)
 
 ```go
 type Serializer[T any] interface {
-Serialize() ([]byte, error)
-Deserialize([]byte) error
-Clone(empty bool) Serializer[T]
-Get() T
-Set(data T)
+  Serialize() ([]byte, error)
+  Deserialize([]byte) error
+  Clone(empty bool) Serializer[T]
+  Get() T
+  Set(data T)
 }
 ```
 
-Program to this interface in your functions to enforce use of the JSON wrapper, for example:
+Program to this interface in your functions to enforce use of the serializer (any format), for example:
 
 ```go
-func Save[T any](w wrapper.Serializer[T]) ([]byte, error) {
-return w.Serialize()
+func Save[T any](w packio.Serializer[T]) ([]byte, error) {
+    return w.Serialize()
 }
 ```
 
@@ -172,14 +172,14 @@ These allow you to accept interfaces in your APIs, ensuring callers pass the app
 
 ```go
 type WithJSON[T any] struct {
-Data T
+    Data T
 }
 ```
 
 ### Additional types
 
-- `WithYAML[T]` with helpers: `NewYAMLWrapper`, `Serialize() ([]byte, error)`, `Deserialize([]byte) error`, `Get()`, `Set(T)`, `Clone(empty bool) *WithYAML[T]`.
-- `WithTOML[T]` with helpers: `NewTOMLWrapper`, `Serialize() ([]byte, error)`, `Deserialize([]byte) error`, `Get()`, `Set(T)`, `Clone(empty bool) *WithTOML[T]`.
+- `WithYAML[T]`: `Serialize() ([]byte, error)`, `Deserialize([]byte) error`, `Get()`, `Set(T)`, `Clone(empty bool) Serializer[T]`.
+- `WithTOML[T]`: `Serialize() ([]byte, error)`, `Deserialize([]byte) error`, `Get()`, `Set(T)`, `Clone(empty bool) Serializer[T]`.
 
 ---
 
