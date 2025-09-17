@@ -146,7 +146,7 @@ if err := wrapped.Deserialize([]byte("invalid")); err != nil {
 ```go
 type Serializer[T any] interface {
   Serialize() ([]byte, error)
-  Deserialize([]byte) error
+  Deserialize(data []byte) error
   Clone(empty bool) Serializer[T]
   Get() T
   Set(data T)
