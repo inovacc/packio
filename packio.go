@@ -1,4 +1,4 @@
-package wrapper
+package packio
 
 type SerdeType int
 
@@ -25,10 +25,10 @@ type Serializer[T any] interface {
 	Set(data T)
 }
 
-// NewWrapper creates a new wrapper instance.
+// New creates a new wrapper instance.
 // If a format is provided, it will be used; otherwise it defaults to JSON.
 // The return type is the unified Serializer[T] interface for flexible usage.
-func NewWrapper[T any](data T, format ...SerdeType) Serializer[T] {
+func New[T any](data T, format ...SerdeType) Serializer[T] {
 	f := JSON
 	if len(format) > 0 {
 		f = format[0]

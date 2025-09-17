@@ -1,6 +1,6 @@
-module github.com/inovacc/wrapper
+module github.com/inovacc/packio
 
-go 1.24
+go 1.23
 
 require (
 	github.com/pelletier/go-toml/v2 v2.2.4

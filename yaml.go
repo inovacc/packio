@@ -1,4 +1,4 @@
-package wrapper
+package packio
 
 import (
 	"gopkg.in/yaml.v3"
@@ -9,9 +9,6 @@ import (
 type WithYAML[T any] struct {
 	Data T
 }
-
-// NewYAMLWrapper creates a new instance of WithYAML
-func NewYAMLWrapper[T any](data T) *WithYAML[T] { return &WithYAML[T]{Data: data} }
 
 // Serialize implements Serializer using YAML format.
 func (w *WithYAML[T]) Serialize() ([]byte, error) { return yaml.Marshal(w.Data) }
@@ -29,20 +26,20 @@ func (w *WithYAML[T]) Set(data T) { w.Data = data }
 func (w *WithYAML[T]) Clone(empty bool) Serializer[T] {
 	if empty {
 		var zero T
-		return NewYAMLWrapper(zero)
+		return New(zero, YAML)
 	}
 
 	b, err := yaml.Marshal(w.Data)
 	if err != nil {
 		var zero T
-		return NewYAMLWrapper(zero)
+		return New(zero, YAML)
 	}
 
 	var newData T
 	if err := yaml.Unmarshal(b, &newData); err != nil {
 		var zero T
-		return NewYAMLWrapper(zero)
+		return New(zero, YAML)
 	}
 
-	return NewYAMLWrapper(newData)
+	return New(newData, YAML)
 }

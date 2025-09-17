@@ -1,4 +1,4 @@
-package wrapper
+package packio
 
 import (
 	"github.com/pelletier/go-toml/v2"
@@ -9,9 +9,6 @@ import (
 type WithTOML[T any] struct {
 	Data T
 }
-
-// NewTOMLWrapper creates a new instance of WithTOML
-func NewTOMLWrapper[T any](data T) *WithTOML[T] { return &WithTOML[T]{Data: data} }
 
 // Serialize implements Serializer using TOML format.
 func (w *WithTOML[T]) Serialize() ([]byte, error) { return toml.Marshal(w.Data) }
@@ -29,20 +26,20 @@ func (w *WithTOML[T]) Set(data T) { w.Data = data }
 func (w *WithTOML[T]) Clone(empty bool) Serializer[T] {
 	if empty {
 		var zero T
-		return NewTOMLWrapper(zero)
+		return New(zero, TOML)
 	}
 
 	b, err := toml.Marshal(w.Data)
 	if err != nil {
 		var zero T
-		return NewTOMLWrapper(zero)
+		return New(zero, TOML)
 	}
 
 	var newData T
 	if err := toml.Unmarshal(b, &newData); err != nil {
 		var zero T
-		return NewTOMLWrapper(zero)
+		return New(zero, TOML)
 	}
 
-	return NewTOMLWrapper(newData)
+	return New(newData, TOML)
 }

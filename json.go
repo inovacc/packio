@@ -1,4 +1,4 @@
-package wrapper
+package packio
 
 import "encoding/json"
 
@@ -23,14 +23,14 @@ func (w *WithJSON[T]) Set(data T) { w.Data = data }
 func (w *WithJSON[T]) Clone(empty bool) Serializer[T] {
 	if empty {
 		var zero T
-		return NewWrapper(zero)
+		return New(zero)
 	}
 
 	// Marshal the original data
 	data, err := json.Marshal(w.Data)
 	if err != nil {
 		var zero T
-		return NewWrapper(zero)
+		return New(zero)
 	}
 
 	// Create a new instance
@@ -39,8 +39,8 @@ func (w *WithJSON[T]) Clone(empty bool) Serializer[T] {
 	// Unmarshal into the new instance
 	if err := json.Unmarshal(data, &newData); err != nil {
 		var zero T
-		return NewWrapper(zero)
+		return New(zero)
 	}
 
-	return NewWrapper(newData)
+	return New(newData)
 }

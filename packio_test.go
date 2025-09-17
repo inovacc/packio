@@ -1,4 +1,4 @@
-package wrapper
+package packio
 
 import (
 	"encoding/json"
@@ -118,7 +118,7 @@ func TestWrapper(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Create wrapper
-			p := NewWrapper(tt.input)
+			p := New(tt.input)
 
 			// Test Serialize (JSON)
 			data, err := p.Serialize()
@@ -135,7 +135,7 @@ func TestWrapper(t *testing.T) {
 			}
 
 			// Test Deserialize
-			newWrapper := NewWrapper(User{})
+			newWrapper := New(User{})
 			if err := newWrapper.Deserialize(data); err != nil {
 				t.Errorf("Deserialize() error = %v", err)
 				return
@@ -152,7 +152,7 @@ func TestWrapper(t *testing.T) {
 
 func TestWrapperEdgeCases(t *testing.T) {
 	t.Run("Deserialize invalid JSON", func(t *testing.T) {
-		w := NewWrapper(User{})
+		w := New(User{})
 
 		err := w.Deserialize([]byte(`{"invalid json`))
 		if err == nil {
@@ -161,7 +161,7 @@ func TestWrapperEdgeCases(t *testing.T) {
 	})
 
 	t.Run("Deserialize empty JSON", func(t *testing.T) {
-		w := NewWrapper(User{})
+		w := New(User{})
 
 		err := w.Deserialize([]byte(`{}`))
 		if err != nil {
@@ -170,7 +170,7 @@ func TestWrapperEdgeCases(t *testing.T) {
 	})
 
 	t.Run("Deserialize with invalid types", func(t *testing.T) {
-		w := NewWrapper(User{})
+		w := New(User{})
 
 		err := w.Deserialize([]byte(`{"price": "not a number"}`))
 		if err == nil {
@@ -179,7 +179,7 @@ func TestWrapperEdgeCases(t *testing.T) {
 	})
 
 	t.Run("Deserialize with null values", func(t *testing.T) {
-		w := NewWrapper(User{})
+		w := New(User{})
 
 		err := w.Deserialize([]byte(`{"name": null, "price": null}`))
 		if err != nil {
@@ -189,7 +189,7 @@ func TestWrapperEdgeCases(t *testing.T) {
 }
 
 func TestCloneFull(t *testing.T) {
-	wUser := NewWrapper(User{
+	wUser := New(User{
 		Name:        "Microwave Vertex Marble",
 		Description: "Full him bale me within. As far to canoe wad its it.",
 		Categories:  []string{"musical instruments", "bicycles and accessories", "books"},
@@ -208,7 +208,7 @@ func TestCloneFull(t *testing.T) {
 }
 
 func TestCloneEmpty(t *testing.T) {
-	wUser := NewWrapper(User{
+	wUser := New(User{
 		Name:        "Microwave Vertex Marble",
 		Description: "Full him bale me within. As far to canoe wad its it.",
 		Categories:  []string{"musical instruments", "bicycles and accessories", "books"},
@@ -227,7 +227,7 @@ func TestCloneEmpty(t *testing.T) {
 }
 
 func TestCloneDeepCopy(t *testing.T) {
-	original := NewWrapper(User{
+	original := New(User{
 		Categories: []string{"cat1", "cat2"},
 		Features:   []string{"feat1", "feat2"},
 	})
@@ -248,7 +248,7 @@ func TestCloneDeepCopy(t *testing.T) {
 
 func TestEmptyWrapperWithSet(t *testing.T) {
 	// Create an empty wrapper
-	emptyWrapper := NewWrapper(User{})
+	emptyWrapper := New(User{})
 
 	// Prepare test data
 	testUser := User{
@@ -283,7 +283,7 @@ func TestEmptyWrapperWithSet(t *testing.T) {
 	}
 
 	// Create another empty wrapper and deserialize the data
-	verifyWrapper := NewWrapper(User{})
+	verifyWrapper := New(User{})
 	if err := verifyWrapper.Deserialize(data); err != nil {
 		t.Errorf("Deserialize() error after Set(): %v", err)
 	}
@@ -305,14 +305,14 @@ func TestYAMLWrapperRoundTrip(t *testing.T) {
 		Color:       "blue",
 		Material:    "paper",
 	}
-	w := NewYAMLWrapper(u)
+	w := New(u, YAML)
 
 	b, err := w.Serialize()
 	if err != nil {
 		t.Fatalf("Serialize error: %v", err)
 	}
 
-	other := NewYAMLWrapper(User{})
+	other := New(User{}, YAML)
 	if err := other.Deserialize(b); err != nil {
 		t.Fatalf("Deserialize error: %v", err)
 	}
@@ -323,7 +323,7 @@ func TestYAMLWrapperRoundTrip(t *testing.T) {
 }
 
 func TestYAMLCloneDeepCopy(t *testing.T) {
-	orig := NewYAMLWrapper(User{Categories: []string{"a", "b"}})
+	orig := New(User{Categories: []string{"a", "b"}}, YAML)
 	clone := orig.Clone(false)
 	origData := orig.Get()
 	origData.Categories[0] = "x"
@@ -344,14 +344,14 @@ func TestTOMLWrapperRoundTrip(t *testing.T) {
 		Color:       "white",
 		Material:    "paper",
 	}
-	w := NewTOMLWrapper(u)
+	w := New(u, TOML)
 
 	b, err := w.Serialize()
 	if err != nil {
 		t.Fatalf("Serialize error: %v", err)
 	}
 
-	other := NewTOMLWrapper(User{})
+	other := New(User{}, TOML)
 	if err := other.Deserialize(b); err != nil {
 		t.Fatalf("Deserialize error: %v", err)
 	}
@@ -362,7 +362,7 @@ func TestTOMLWrapperRoundTrip(t *testing.T) {
 }
 
 func TestTOMLCloneDeepCopy(t *testing.T) {
-	orig := NewTOMLWrapper(User{Features: []string{"f1", "f2"}})
+	orig := New(User{Features: []string{"f1", "f2"}}, TOML)
 	clone := orig.Clone(false)
 	origData := orig.Get()
 	origData.Features[0] = "y"
